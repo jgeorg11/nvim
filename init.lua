@@ -228,8 +228,8 @@ require("lazy").setup({
 					ornl_openai = function()
 						return require("codecompanion.adapters").extend("openai_compatible", {
 							env = {
-								url = vim.env.ORNL_OPENAI_URL or "http://localhost:8000",
-								api_key = vim.env.ORNL_OPENAI_API_KEY or "",
+								url = vim.env.ORNL_OPENAI_URL,
+								api_key = vim.env.ORNL_OPENAI_API_KEY,
 								chat_url = "/v1/chat/completions",
 								models_endpoint = "/v1/models",
 							},
@@ -238,16 +238,40 @@ require("lazy").setup({
 							},
 						})
 					end,
+					forerunner_openwebui = function()
+						return require("codecompanion.adapters").extend("openai_compatible", {
+							env = {
+								url = vim.env.FORERUNNER_OPENWEBUI_URL,
+								api_key = vim.env.FORERUNNER_OPENWEBUI_API_KEY,
+								chat_url = "/api/chat/completions",
+								models_endpoint = "/api/models",
+							},
+							schema = {
+								model = { default = vim.env.FORERUNNER_OPENWEBUI_MODEL or "AMD.llama-4-maverick" },
+							},
+						})
+					end,
 				},
 			},
 			interactions = {
-				chat = { adapter = { name = "ornl_openai", model = "openai/gpt-oss-120b" } },
+				chat = {
+					adapter = {
+						name = "forerunner_openwebui",
+						model = vim.env.FORERUNNER_OPENWEBUI_MODEL or "AMD.llama-4-maverick",
+					},
+				},
 			},
 			strategies = {
-				chat = { adapter = { name = "ornl_openai", model = "openai/gpt-oss-120b" } },
+				chat = {
+					adapter = {
+						name = "forerunner_openwebui",
+						model = vim.env.FORERUNNER_OPENWEBUI_MODEL or "AMD.llama-4-maverick",
+					},
+				},
 			},
 		},
 	},
+
 	-- Code Companion configs
 	-- {
 	-- 	"olimorris/codecompanion.nvim",
