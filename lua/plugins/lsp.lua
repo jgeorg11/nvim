@@ -116,7 +116,23 @@ return {
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
 			local servers = {
 				prettier = {},
-				gopls = {},
+				gopls = {
+					cmd = { "gopls" },
+					filetypes = { "go", "gomod", "gowork", "gotmpl" },
+					root_markers = { "go.work", "go.mod", ".git" },
+					settings = {
+						gopls = {
+							gofumpt = true,
+							analyses = {
+								unusedparams = true,
+								shadow = true,
+							},
+							staticcheck = true,
+							usePlaceholders = true,
+							completeUnimported = true,
+						},
+					},
+				},
 				pyright = {},
 				rust_analyzer = {},
 				lua_ls = {
@@ -143,7 +159,8 @@ return {
 					function(server_name)
 						local server = servers[server_name] or {}
 						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-						require("lspconfig")[server_name].setup(server)
+						vim.lsp.config(server_name, server)
+						vim.lsp.enable(server_name)
 					end,
 				},
 			})
