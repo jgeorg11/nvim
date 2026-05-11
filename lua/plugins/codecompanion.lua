@@ -1,3 +1,6 @@
+local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
+local default_adapter = is_windows and "local_ollama" or "codex"
+
 return {
 	{
 		"olimorris/codecompanion.nvim",
@@ -39,6 +42,16 @@ return {
 							},
 						})
 					end,
+
+					local_ollama = function()
+						return require("codecompanion.adapters").extend("ollama", {
+							schema = {
+								model = {
+									default = vim.env.OLLAMA_MODEL or "gpt-oss:20b",
+								},
+							},
+						})
+					end,
 				},
 
 				acp = {
@@ -57,7 +70,7 @@ return {
 
 			interactions = {
 				chat = {
-					adapter = "codex",
+					adapter = default_adapter,
 
 					tools = {
 						opts = {
@@ -146,10 +159,10 @@ Follow this workflow:
 
 			strategies = {
 				chat = {
-					adapter = "codex",
+					adapter = default_adapter,
 				},
 				inline = {
-					adapter = "codex",
+					adapter = default_adapter,
 				},
 			},
 
