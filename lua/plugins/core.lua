@@ -8,8 +8,23 @@ return {
 			"nvim-mini/mini.nvim",
 		},
 		opts = {
+			ignore = function(buf)
+				return vim.bo[buf].buftype == "nofile"
+			end,
+			nested = false,
+			heading = {
+				sign = false,
+			},
+			bullet = {
+				icons = { "●", "○", "◆", "◇" },
+			},
 			code = {
 				highlight = "RenderMarkdownH16Bg",
+			},
+			checkbox = {
+				checked = {
+					scope_highlight = "@markup.strikethrough",
+				},
 			},
 		},
 		ft = { "markdown", "codecompanion" },
@@ -76,12 +91,26 @@ return {
 		priority = 1000,
 		config = function()
 			require("tokyonight").setup({
+				style = "moon",
 				styles = {
 					comments = { italic = false },
 				},
+				on_highlights = function(hl, c)
+					hl.RenderMarkdownH1Bg = { bg = c.blue1, fg = c.bg_dark }
+					hl.RenderMarkdownH2Bg = { bg = c.cyan, fg = c.bg_dark }
+					hl.RenderMarkdownH3Bg = { bg = c.green1, fg = c.bg_dark }
+					hl.RenderMarkdownH4Bg = { bg = c.yellow, fg = c.bg_dark }
+					hl.RenderMarkdownH5Bg = { bg = c.orange, fg = c.bg_dark }
+					hl.RenderMarkdownH6Bg = { bg = c.magenta2, fg = c.bg_dark }
+					hl.RenderMarkdownCode = { bg = c.bg_highlight }
+					hl.RenderMarkdownBullet = { fg = c.blue }
+					hl.RenderMarkdownQuote = { fg = c.cyan }
+					hl.RenderMarkdownChecked = { fg = c.green1 }
+					hl.RenderMarkdownUnchecked = { fg = c.yellow }
+				end,
 			})
 
-			vim.cmd.colorscheme("evening")
+			vim.cmd.colorscheme("tokyonight-moon")
 		end,
 	},
 	{
@@ -106,27 +135,52 @@ return {
 	{
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
-		main = "nvim-treesitter.configs",
-		opts = {
-			ensure_installed = {
-				"bash",
-				"c",
-				"diff",
-				"html",
-				"lua",
-				"luadoc",
-				"markdown",
-				"markdown_inline",
-				"query",
-				"vim",
-				"vimdoc",
-			},
-			auto_install = true,
-			highlight = {
-				enable = true,
-				additional_vim_regex_highlighting = { "ruby" },
-			},
-			indent = { enable = true, disable = { "ruby" } },
-		},
+		config = function()
+			vim.treesitter.query.set("markdown", "injections", [[
+((html_block) @injection.content
+  (#set! injection.language "html")
+  (#set! injection.combined)
+  (#set! injection.include-children))
+
+((minus_metadata) @injection.content
+  (#set! injection.language "yaml")
+  (#offset! @injection.content 1 0 -1 0)
+  (#set! injection.include-children))
+
+((plus_metadata) @injection.content
+  (#set! injection.language "toml")
+  (#offset! @injection.content 1 0 -1 0)
+  (#set! injection.include-children))
+
+([
+  (inline)
+  (pipe_table_cell)
+] @injection.content
+  (#set! injection.language "markdown_inline"))
+			]])
+			vim.treesitter.query.set("bash", "injections", "")
+
+			require("nvim-treesitter.configs").setup({
+				ensure_installed = {
+					"bash",
+					"c",
+					"diff",
+					"html",
+					"lua",
+					"luadoc",
+					"markdown",
+					"markdown_inline",
+					"query",
+					"vim",
+					"vimdoc",
+				},
+				auto_install = true,
+				highlight = {
+					enable = true,
+					additional_vim_regex_highlighting = { "ruby" },
+				},
+				indent = { enable = true, disable = { "ruby" } },
+			})
+		end,
 	},
 }

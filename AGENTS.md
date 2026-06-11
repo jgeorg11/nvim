@@ -1,30 +1,31 @@
-# Neovim Config Agent Guide
+# Coding Workspace Agent Guide
 
-This repository is a personal Neovim configuration.
+This repository is user-managed code and configuration.
 
 ## Goals
 
-- Keep startup reliable.
+- Keep the project reliable.
 - Prefer small, reviewable edits.
-- Preserve existing keymaps, plugin choices, and workflow unless a change is explicitly requested.
-- Favor changes that work in a local macOS terminal-based Neovim setup.
+- Preserve existing workflows, integrations, and conventions unless a change is explicitly requested.
+- Favor changes that work in the user's local development environment.
 
 ## Working Rules
 
-- Read the relevant `init.lua` section before editing.
-- Do not remove existing plugin configuration unless it is broken or replaced by a clearly better supported path.
-- Keep adapter and model configuration explicit.
+- Read the relevant files and surrounding context before editing.
+- Do not remove existing configuration, dependencies, or integrations unless they are broken or clearly replaced.
+- Keep adapter, model, endpoint, and tool configuration explicit.
 - Prefer environment variables or local `.env` loading over hardcoding secrets.
-- When adding new config, keep it compatible with `lazy.nvim`.
+- When adding new config or code, keep it compatible with the project's existing tooling and structure.
 
 ## Verification
 
-- For config-only changes, run `nvim --headless '+qall'`.
-- For CodeCompanion changes, verify the selected adapter name, auth method, and any required external binaries.
-- If a feature depends on an external CLI, state that dependency clearly.
+- For configuration-only changes, run the lightest relevant validation command available.
+- For code changes, run the smallest meaningful test, typecheck, lint, or smoke check that fits the edit.
+- For integration changes, verify the selected adapter, auth method, endpoint, and any required external binaries.
+- If a feature depends on an external CLI, service, login, API key, or local setup detail, state that dependency clearly.
 
 ## Editing Style
 
-- Keep Lua formatting consistent with the surrounding file.
+- Keep formatting consistent with the surrounding files.
 - Add comments only when they clarify a non-obvious decision.
-- Avoid broad refactors in `init.lua` unless asked.
+- Avoid broad refactors unless asked.
