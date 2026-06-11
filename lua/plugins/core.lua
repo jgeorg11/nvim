@@ -134,8 +134,30 @@ return {
 	},
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "master",
 		build = ":TSUpdate",
-		config = function()
+		opts = {
+			ensure_installed = {
+				"bash",
+				"c",
+				"diff",
+				"html",
+				"lua",
+				"luadoc",
+				"markdown",
+				"markdown_inline",
+				"query",
+				"vim",
+				"vimdoc",
+			},
+			auto_install = true,
+			highlight = {
+				enable = true,
+				additional_vim_regex_highlighting = { "ruby" },
+			},
+			indent = { enable = true, disable = { "ruby" } },
+		},
+		config = function(_, opts)
 			vim.treesitter.query.set("markdown", "injections", [[
 ((html_block) @injection.content
   (#set! injection.language "html")
@@ -159,28 +181,7 @@ return {
   (#set! injection.language "markdown_inline"))
 			]])
 			vim.treesitter.query.set("bash", "injections", "")
-
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = {
-					"bash",
-					"c",
-					"diff",
-					"html",
-					"lua",
-					"luadoc",
-					"markdown",
-					"markdown_inline",
-					"query",
-					"vim",
-					"vimdoc",
-				},
-				auto_install = true,
-				highlight = {
-					enable = true,
-					additional_vim_regex_highlighting = { "ruby" },
-				},
-				indent = { enable = true, disable = { "ruby" } },
-			})
+			require("nvim-treesitter.configs").setup(opts)
 		end,
 	},
 }
