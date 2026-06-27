@@ -57,6 +57,13 @@ return {
 				acp = {
 					codex = function()
 						return require("codecompanion.adapters").extend("codex", {
+							commands = {
+								default = {
+									"codex-acp",
+									"-c",
+									'service_tier="fast"',
+								},
+							},
 							defaults = {
 								auth_method = "chatgpt",
 								session_config_options = {
