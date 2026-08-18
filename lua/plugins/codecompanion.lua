@@ -1,5 +1,11 @@
 local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
 local default_adapter = is_windows and "local_ollama" or "codex"
+local inline_adapter = vim.env.CODECOMPANION_INLINE_ADAPTER
+	or ((vim.env.CODECOMPANION_OPENAI_URL and vim.env.CODECOMPANION_OPENAI_API_KEY) and "remote_openai" or "local_ollama")
+local codex_acp = vim.fn.executable("/opt/homebrew/opt/codex-acp/bin/codex-acp") == 1
+		and "/opt/homebrew/opt/codex-acp/bin/codex-acp"
+	or "codex-acp"
+local codecompanion_actions = require("config.codecompanion_actions")
 
 return {
 	{
@@ -14,14 +20,14 @@ return {
 					remote_openai = function()
 						return require("codecompanion.adapters").extend("openai_compatible", {
 							env = {
-								url = vim.env.ORNL_OPENAI_URL,
-								api_key = vim.env.ORNL_OPENAI_API_KEY,
+								url = vim.env.CODECOMPANION_OPENAI_URL,
+								api_key = vim.env.CODECOMPANION_OPENAI_API_KEY,
 								chat_url = "/v1/chat/completions",
 								models_endpoint = "/v1/models",
 							},
 							schema = {
 								model = {
-									default = "openai/gpt-oss-120b",
+									default = vim.env.CODECOMPANION_OPENAI_MODEL or "openai/gpt-oss-120b",
 								},
 							},
 						})
@@ -30,14 +36,14 @@ return {
 					local_openwebui = function()
 						return require("codecompanion.adapters").extend("openai_compatible", {
 							env = {
-								url = vim.env.FORERUNNER_OPENWEBUI_URL,
-								api_key = vim.env.FORERUNNER_OPENWEBUI_API_KEY,
+								url = vim.env.CODECOMPANION_OPENWEBUI_URL,
+								api_key = vim.env.CODECOMPANION_OPENWEBUI_API_KEY,
 								chat_url = "/api/chat/completions",
 								models_endpoint = "/api/models",
 							},
 							schema = {
 								model = {
-									default = vim.env.FORERUNNER_OPENWEBUI_MODEL or "llama-4-maverick",
+									default = vim.env.CODECOMPANION_OPENWEBUI_MODEL or "llama-4-maverick",
 								},
 							},
 						})
@@ -59,7 +65,7 @@ return {
 						return require("codecompanion.adapters").extend("codex", {
 							commands = {
 								default = {
-									"codex-acp",
+									codex_acp,
 									"-c",
 									'service_tier="fast"',
 								},
@@ -67,7 +73,8 @@ return {
 							defaults = {
 								auth_method = "chatgpt",
 								session_config_options = {
-									model = "gpt-5.4",
+									model = "gpt-5.5",
+									thought_level = "Xhigh",
 								},
 							},
 						})
@@ -162,14 +169,20 @@ Follow this workflow:
 						},
 					},
 				},
+
+				inline = {
+					adapter = inline_adapter,
+				},
 			},
 
-			strategies = {
-				chat = {
-					adapter = default_adapter,
-				},
-				inline = {
-					adapter = default_adapter,
+			display = {
+				action_palette = {
+					height = 12,
+					opts = {
+						show_preset_actions = false,
+						show_preset_prompts = false,
+						title = "Codex actions",
+					},
 				},
 			},
 
@@ -193,14 +206,14 @@ Follow this workflow:
 				},
 			},
 
-			prompt_library = {
+			prompt_library = vim.tbl_deep_extend("force", codecompanion_actions.prompt_library(), {
 				markdown = {
 					dirs = {
 						vim.fn.getcwd() .. "/.prompts",
 						"~/.config/nvim/codecompanion/prompts",
 					},
 				},
-			},
+			}),
 		},
 	},
 }

@@ -44,3 +44,4 @@ luac.out
 
 # Debug files
 .nvimlog
+nvim.log

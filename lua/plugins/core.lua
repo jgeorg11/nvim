@@ -1,6 +1,10 @@
 return {
 	"NMAC427/guess-indent.nvim",
-	"github/copilot.vim",
+	{
+		"github/copilot.vim",
+		cmd = "Copilot",
+		event = "InsertEnter",
+	},
 	{
 		"MeanderingProgrammer/render-markdown.nvim",
 		dependencies = {
