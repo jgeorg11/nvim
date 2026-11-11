@@ -2,12 +2,67 @@ local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
 local local_adapter = is_windows and "lm_studio" or "local_ollama"
 local default_adapter = is_windows and "lm_studio" or "codex"
 local inline_adapter = vim.env.CODECOMPANION_INLINE_ADAPTER
+	or (is_windows and "lm_studio_inline")
 	or ((vim.env.CODECOMPANION_OPENAI_URL and vim.env.CODECOMPANION_OPENAI_API_KEY) and "remote_openai" or local_adapter)
 local codex_acp = vim.fn.executable("/opt/homebrew/opt/codex-acp/bin/codex-acp") == 1
 		and "/opt/homebrew/opt/codex-acp/bin/codex-acp"
 	or "codex-acp"
 local codecompanion_actions = require("config.codecompanion_actions")
 local config_dir = vim.fn.stdpath("config")
+
+local function make_lm_studio_adapter(stream)
+	local base_url = (vim.env.LM_STUDIO_URL or "http://localhost:1234"):gsub("/+$", "")
+	local api_key = vim.env.LM_STUDIO_API_KEY or "lm-studio"
+
+	local function get_models()
+		local ok, response = pcall(function()
+			return require("plenary.curl").get(base_url .. "/v1/models", {
+				sync = true,
+				headers = { Authorization = "Bearer " .. api_key },
+			})
+		end)
+		if not ok or not response or (response.status and response.status >= 400) then
+			return {}
+		end
+
+		local decoded, payload = pcall(vim.json.decode, response.body)
+		if not decoded or type(payload) ~= "table" or type(payload.data) ~= "table" then
+			return {}
+		end
+		return payload.data
+	end
+
+	local adapter_config = {
+		url = base_url .. "/v1/responses",
+		env = { api_key = api_key },
+		schema = {
+			model = {
+				default = function()
+					if vim.env.LM_STUDIO_MODEL and vim.env.LM_STUDIO_MODEL ~= "" then
+						return vim.env.LM_STUDIO_MODEL
+					end
+					local models = get_models()
+					return models[1] and models[1].id
+				end,
+				choices = function()
+					local choices = {}
+					for _, model in ipairs(get_models()) do
+						if type(model.id) == "string" then
+							choices[model.id] = { formatted_name = model.id }
+						end
+					end
+					return choices
+				end,
+			},
+		},
+	}
+
+	if stream == false then
+		adapter_config.opts = { stream = false }
+	end
+
+	return require("codecompanion.adapters").extend("openai_responses", adapter_config)
+end
 
 return {
 	{
@@ -62,22 +117,11 @@ return {
 					end,
 
 					lm_studio = function()
-						local adapter_config = {
-							env = {
-								url = vim.env.LM_STUDIO_URL or "http://localhost:1234",
-								api_key = vim.env.LM_STUDIO_API_KEY or "lm-studio",
-								chat_url = "/v1/chat/completions",
-								models_endpoint = "/v1/models",
-							},
-						}
+						return make_lm_studio_adapter(true)
+					end,
 
-						if vim.env.LM_STUDIO_MODEL and vim.env.LM_STUDIO_MODEL ~= "" then
-							adapter_config.schema = {
-								model = { default = vim.env.LM_STUDIO_MODEL },
-							}
-						end
-
-						return require("codecompanion.adapters").extend("openai_compatible", adapter_config)
+					lm_studio_inline = function()
+						return make_lm_studio_adapter(false)
 					end,
 				},
 
