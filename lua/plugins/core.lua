@@ -4,6 +4,7 @@ return {
 		"github/copilot.vim",
 		cmd = "Copilot",
 		event = "InsertEnter",
+		cond = vim.fn.has("win32") ~= 1 and vim.fn.has("win64") ~= 1,
 	},
 	{
 		"MeanderingProgrammer/render-markdown.nvim",
