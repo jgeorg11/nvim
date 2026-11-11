@@ -6,6 +6,7 @@ local codex_acp = vim.fn.executable("/opt/homebrew/opt/codex-acp/bin/codex-acp")
 		and "/opt/homebrew/opt/codex-acp/bin/codex-acp"
 	or "codex-acp"
 local codecompanion_actions = require("config.codecompanion_actions")
+local config_dir = vim.fn.stdpath("config")
 
 return {
 	{
@@ -66,15 +67,14 @@ return {
 							commands = {
 								default = {
 									codex_acp,
-									"-c",
-									'service_tier="fast"',
 								},
 							},
 							defaults = {
-								auth_method = "chatgpt",
+								auth_method = "chat-gpt",
 								session_config_options = {
-									model = "gpt-5.5",
-									thought_level = "Xhigh",
+									model = "gpt-6.1-sol",
+									thought_level = "xhigh",
+									model_config = "on", -- Fast mode
 								},
 							},
 						})
@@ -151,7 +151,7 @@ Follow this workflow:
 						opts_by_tool = {
 							memory = {
 								whitelist = {
-									{ path = "~/.config/nvim/codecompanion/PERSONAL.md", as = "/personal" },
+									{ path = config_dir .. "/codecompanion/PERSONAL.md", as = "/personal" },
 								},
 							},
 						},
@@ -201,7 +201,7 @@ Follow this workflow:
 					description = "My persistent coding preferences",
 					parser = "CodeCompanion",
 					files = {
-						"~/.config/nvim/codecompanion/PERSONAL.md",
+						config_dir .. "/codecompanion/PERSONAL.md",
 					},
 				},
 			},
@@ -210,7 +210,7 @@ Follow this workflow:
 				markdown = {
 					dirs = {
 						vim.fn.getcwd() .. "/.prompts",
-						"~/.config/nvim/codecompanion/prompts",
+						config_dir .. "/codecompanion/prompts",
 					},
 				},
 			}),

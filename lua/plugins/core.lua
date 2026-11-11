@@ -91,9 +91,16 @@ return {
 		},
 	},
 	{
+		"miikanissi/modus-themes.nvim",
+		priority = 1000,
+	},
+	{
 		"folke/tokyonight.nvim",
 		priority = 1000,
 		config = function()
+			local dark_colorscheme = "tokyonight-moon"
+			local light_colorscheme = "modus"
+
 			require("tokyonight").setup({
 				style = "moon",
 				styles = {
@@ -114,7 +121,18 @@ return {
 				end,
 			})
 
-			vim.cmd.colorscheme("tokyonight-moon")
+			local function toggle_colorscheme()
+				local is_light = vim.o.background == "light"
+				vim.o.background = is_light and "dark" or "light"
+
+				local colorscheme = is_light and dark_colorscheme or light_colorscheme
+				vim.cmd.colorscheme(colorscheme)
+			end
+
+			vim.keymap.set("n", "<leader>tt", toggle_colorscheme, { desc = "Toggle light theme" })
+			vim.api.nvim_create_user_command("ToggleTheme", toggle_colorscheme, { desc = "Toggle light theme" })
+
+			vim.cmd.colorscheme(dark_colorscheme)
 		end,
 	},
 	{
@@ -162,7 +180,10 @@ return {
 			indent = { enable = true, disable = { "ruby" } },
 		},
 		config = function(_, opts)
-			vim.treesitter.query.set("markdown", "injections", [[
+			vim.treesitter.query.set(
+				"markdown",
+				"injections",
+				[[
 ((html_block) @injection.content
   (#set! injection.language "html")
   (#set! injection.combined)
@@ -183,7 +204,8 @@ return {
   (pipe_table_cell)
 ] @injection.content
   (#set! injection.language "markdown_inline"))
-			]])
+			]]
+			)
 			vim.treesitter.query.set("bash", "injections", "")
 			require("nvim-treesitter.configs").setup(opts)
 		end,
