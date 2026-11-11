@@ -35,7 +35,15 @@ local function make_lm_studio_adapter(stream)
 	local adapter_config = {
 		url = base_url .. "/v1/responses",
 		env = { api_key = api_key },
+		parameters = {
+			text = { format = { type = "text" } },
+		},
 		schema = {
+			verbosity = {
+				enabled = function()
+					return false
+				end,
+			},
 			model = {
 				default = function()
 					if vim.env.LM_STUDIO_MODEL and vim.env.LM_STUDIO_MODEL ~= "" then
