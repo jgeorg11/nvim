@@ -69,7 +69,25 @@ local function make_lm_studio_adapter(stream)
 		adapter_config.opts = { stream = false }
 	end
 
-	return require("codecompanion.adapters").extend("openai_responses", adapter_config)
+	local adapter = require("codecompanion.adapters").extend("openai_responses", adapter_config)
+	local parse_chat = adapter.handlers.response.parse_chat
+	adapter.handlers.response.parse_chat = function(self, data, tools)
+		if self.opts.stream and type(data) == "string" then
+			local cleaned = require("codecompanion.utils.adapters").clean_streamed_data(data)
+			local ok, event = pcall(vim.json.decode, cleaned)
+			if ok and type(event) == "table" and event.type == "response.reasoning_text.delta" then
+				return {
+					status = "success",
+					output = {
+						role = self.roles.llm,
+						reasoning = { content = event.delta or "" },
+					},
+				}
+			end
+		end
+		return parse_chat(self, data, tools)
+	end
+	return adapter
 end
 
 return {
