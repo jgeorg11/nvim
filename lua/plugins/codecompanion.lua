@@ -1,7 +1,8 @@
 local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
-local default_adapter = is_windows and "local_ollama" or "codex"
+local local_adapter = is_windows and "lm_studio" or "local_ollama"
+local default_adapter = is_windows and "lm_studio" or "codex"
 local inline_adapter = vim.env.CODECOMPANION_INLINE_ADAPTER
-	or ((vim.env.CODECOMPANION_OPENAI_URL and vim.env.CODECOMPANION_OPENAI_API_KEY) and "remote_openai" or "local_ollama")
+	or ((vim.env.CODECOMPANION_OPENAI_URL and vim.env.CODECOMPANION_OPENAI_API_KEY) and "remote_openai" or local_adapter)
 local codex_acp = vim.fn.executable("/opt/homebrew/opt/codex-acp/bin/codex-acp") == 1
 		and "/opt/homebrew/opt/codex-acp/bin/codex-acp"
 	or "codex-acp"
@@ -58,6 +59,25 @@ return {
 								},
 							},
 						})
+					end,
+
+					lm_studio = function()
+						local adapter_config = {
+							env = {
+								url = vim.env.LM_STUDIO_URL or "http://localhost:1234",
+								api_key = vim.env.LM_STUDIO_API_KEY or "lm-studio",
+								chat_url = "/v1/chat/completions",
+								models_endpoint = "/v1/models",
+							},
+						}
+
+						if vim.env.LM_STUDIO_MODEL and vim.env.LM_STUDIO_MODEL ~= "" then
+							adapter_config.schema = {
+								model = { default = vim.env.LM_STUDIO_MODEL },
+							}
+						end
+
+						return require("codecompanion.adapters").extend("openai_compatible", adapter_config)
 					end,
 				},
 
@@ -172,6 +192,14 @@ Follow this workflow:
 
 				inline = {
 					adapter = inline_adapter,
+				},
+
+				cmd = {
+					adapter = is_windows and "lm_studio" or "copilot",
+				},
+
+				background = {
+					adapter = is_windows and "lm_studio" or "copilot",
 				},
 			},
 
